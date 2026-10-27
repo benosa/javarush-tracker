@@ -1,9 +1,3 @@
-# template for server
+# Optional deployment overrides; credentials are read from environment variables.
 app:
-  host-url: http://localhost
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/jira
-    username: jira
-    password: JiraRush
-
+  host-url: ${APP_URL:http://localhost}
