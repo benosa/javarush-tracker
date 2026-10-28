@@ -7,10 +7,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,13 +25,34 @@ public class FileUtil {
             throw new IllegalRequestDataException("Select a file to upload.");
         }
 
-        File dir = new File(directoryPath);
-        if (dir.exists() || dir.mkdirs()) {
-            File file = new File(directoryPath + fileName);
-            try (OutputStream outStream = new FileOutputStream(file)) {
-                outStream.write(multipartFile.getBytes());
-            } catch (IOException ex) {
-                throw new IllegalRequestDataException("Failed to upload file" + multipartFile.getOriginalFilename());
+        Path directory = Path.of(directoryPath).toAbsolutePath().normalize();
+        Path target = directory.resolve(fileName).normalize();
+        if (fileName.isBlank() || !directory.equals(target.getParent())
+                || !Path.of(fileName).getFileName().toString().equals(fileName)) {
+            throw new IllegalRequestDataException("Invalid attachment name");
+        }
+        Path temporary = null;
+        try {
+            Files.createDirectories(directory);
+            temporary = Files.createTempFile(directory, ".upload-", ".tmp");
+            try (InputStream input = multipartFile.getInputStream()) {
+                Files.copy(input, temporary, StandardCopyOption.REPLACE_EXISTING);
+            }
+            // Replace only after the entire stream has been written.
+            try {
+                Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException ex) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException ex) {
+            throw new IllegalRequestDataException("Failed to upload file " + multipartFile.getOriginalFilename());
+        } finally {
+            if (temporary != null) {
+                try {
+                    Files.deleteIfExists(temporary);
+                } catch (IOException ignored) {
+                    // A failed cleanup must not hide the upload error.
+                }
             }
         }
     }
