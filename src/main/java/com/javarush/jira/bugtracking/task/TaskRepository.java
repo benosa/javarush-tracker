@@ -22,19 +22,10 @@ public interface TaskRepository extends BaseRepository<Task> {
     @Query("SELECT t FROM Task t JOIN FETCH t.project LEFT JOIN FETCH t.sprint LEFT JOIN FETCH t.parent WHERE t.id =:id")
     Optional<Task> findFullById(long id);
 
+    @Query("SELECT t.id FROM Task t WHERE t.parentId IN :parentIds")
+    List<Long> findChildIds(List<Long> parentIds);
+
     @Modifying
-    @Query(value = """
-            WITH RECURSIVE task_with_subtasks AS (
-                SELECT id, id AS child
-                FROM task
-                WHERE parent_id is null AND id =:taskId
-                UNION ALL
-                    SELECT task_with_subtasks.id, t.id
-                    FROM task_with_subtasks JOIN task t ON t.parent_id = task_with_subtasks.child
-            )
-            UPDATE task
-            SET sprint_id =:sprintId
-            WHERE id IN (SELECT child FROM task_with_subtasks)
-            """, nativeQuery = true)
-    void setTaskAndSubTasksSprint(long taskId, Long sprintId);
+    @Query("UPDATE Task t SET t.sprintId = :sprintId WHERE t.id IN :ids")
+    void setSprintForTasks(java.util.Collection<Long> ids, Long sprintId);
 }

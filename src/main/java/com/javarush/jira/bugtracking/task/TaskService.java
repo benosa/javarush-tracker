@@ -68,7 +68,14 @@ public class TaskService {
                 throw new DataConflictException("Target sprint must belong to the same project");
             }
         }
-        handler.getRepository().setTaskAndSubTasksSprint(taskId, sprintId);
+        var repository = handler.getRepository();
+        var ids = new java.util.LinkedHashSet<Long>();
+        List<Long> level = List.of(taskId);
+        while (!level.isEmpty()) {
+            ids.addAll(level);
+            level = repository.findChildIds(level).stream().filter(id -> !ids.contains(id)).toList();
+        }
+        repository.setSprintForTasks(ids, sprintId);
     }
 
     @Transactional
