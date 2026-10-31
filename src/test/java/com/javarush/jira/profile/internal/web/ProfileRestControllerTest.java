@@ -59,4 +59,50 @@ class ProfileRestControllerTest extends AbstractControllerTest {
         perform(get(URL)).andExpect(jsonPath("$.contacts").isEmpty()).andExpect(jsonPath("$.mailNotifications").isEmpty());
     }
 
+    @Test @WithAnonymousUser void getRequiresAuthentication() throws Exception {
+        perform(get(URL)).andExpect(status().isUnauthorized());
+    }
+
+    @Test @WithAnonymousUser void updateRequiresAuthentication() throws Exception {
+        perform(put(URL).contentType(MediaType.APPLICATION_JSON).content(writeValue(getUpdatedTo())))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test void cannotUpdateAnotherUsersProfile() throws Exception {
+        ProfileTo other = getUpdatedTo();
+        other.setId(ADMIN_ID);
+        perform(put(URL).contentType(MediaType.APPLICATION_JSON).content(writeValue(other)))
+                .andExpect(status().isUnprocessableEntity());
+        perform(get(URL)).andExpect(jsonPath("$.contacts", hasSize(3)));
+    }
+
+    @Test void cannotAttachAnotherUsersContact() throws Exception {
+        ContactTo contact = new ContactTo("tg", "testContact");
+        contact.setId(ADMIN_ID);
+        perform(put(URL).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"contacts\":[{\"id\":2,\"code\":\"tg\",\"value\":\"testContact\"}],\"mailNotifications\":[]}"))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    static Stream<ProfileTo> invalidProfiles() {
+        return Stream.of(getInvalidTo(), getWithContactHtmlUnsafeTo(),
+                new ProfileTo(null, Set.of(), Set.of(new ContactTo("tg", "a"))),
+                new ProfileTo(null, Set.of(), Set.of(new ContactTo("tg", "a".repeat(257)))));
+    }
+
+    @ParameterizedTest @MethodSource("invalidProfiles")
+    void rejectsInvalidProfile(ProfileTo profile) throws Exception {
+        perform(put(URL).contentType(MediaType.APPLICATION_JSON).content(writeValue(profile)))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test void rejectsUnknownNotification() throws Exception {
+        perform(put(URL).contentType(MediaType.APPLICATION_JSON).content(writeValue(getWithUnknownNotificationTo())))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test void rejectsUnknownContactType() throws Exception {
+        perform(put(URL).contentType(MediaType.APPLICATION_JSON).content(writeValue(getWithUnknownContactTo())))
+                .andExpect(status().isUnprocessableEntity());
+    }
 }
