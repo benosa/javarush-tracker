@@ -10,6 +10,10 @@ import java.util.Optional;
 
 @Transactional(readOnly = true)
 public interface TaskRepository extends BaseRepository<Task> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT t FROM Task t WHERE t.id = :id")
+    Optional<Task> findForTagUpdate(long id);
+
     @Query("SELECT t FROM Task t WHERE t.sprintId =:sprintId ORDER BY t.startpoint DESC")
     List<Task> findAllBySprintId(long sprintId);
 
