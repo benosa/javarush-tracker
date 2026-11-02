@@ -29,6 +29,7 @@ spring:
         jdbc.batch_size: 20
 
   liquibase:
+    contexts: ${LIQUIBASE_CONTEXTS:schema}
     changeLog: "classpath:db/changelog.sql"
 
   # Jackson Fields Serialization

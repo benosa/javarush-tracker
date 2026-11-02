@@ -329,3 +329,16 @@ values ('todo', 'ToDo', 3, 'in_progress,canceled|'),
 
 drop index UK_USER_BELONG;
 create unique index UK_USER_BELONG on USER_BELONG (OBJECT_ID, OBJECT_TYPE, USER_ID, USER_TYPE_CODE) where ENDPOINT is null;
+
+--changeset final:timing-example context:timing-demo
+-- Negative identifiers keep this opt-in example separate from generated identifiers.
+insert into USERS (ID, EMAIL, PASSWORD, FIRST_NAME, DISPLAY_NAME, ENDPOINT)
+values (-1000, 'timing@example.invalid', '[disabled]', 'Timing', 'timing-example', '2020-01-01 00:00:00');
+insert into PROJECT (ID, CODE, TITLE, DESCRIPTION, TYPE_CODE)
+values (-1000, 'TIMING', 'Timing example', 'Completed task timeline', 'task_tracker');
+insert into TASK (ID, TITLE, TYPE_CODE, STATUS_CODE, PROJECT_ID)
+values (-1000, 'Timing example', 'task', 'done', -1000);
+insert into ACTIVITY (ID, AUTHOR_ID, TASK_ID, UPDATED, STATUS_CODE)
+values (-1003, -1000, -1000, '2026-11-02 09:00:00', 'in_progress'),
+       (-1002, -1000, -1000, '2026-11-02 13:30:00', 'ready_for_review'),
+       (-1001, -1000, -1000, '2026-11-02 15:00:00', 'done');
