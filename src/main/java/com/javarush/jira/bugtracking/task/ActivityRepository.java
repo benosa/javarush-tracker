@@ -8,6 +8,9 @@ import java.util.List;
 
 @Transactional(readOnly = true)
 public interface ActivityRepository extends BaseRepository<Activity> {
+    @Query("SELECT a FROM Activity a WHERE a.taskId = :taskId AND a.statusCode IS NOT NULL ORDER BY a.updated, a.id")
+    List<Activity> findStatusHistory(long taskId);
+
     @Query("SELECT a FROM Activity a JOIN FETCH a.author WHERE a.taskId =:taskId ORDER BY a.updated DESC")
     List<Activity> findAllByTaskIdOrderByUpdatedDesc(long taskId);
 
