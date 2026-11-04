@@ -1,6 +1,6 @@
 #  https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 app:
-  host-url: http://localhost:8080
+  host-url: ${APP_URL:http://localhost:8080}
   test-mail: ${TEST_MAIL:dev@example.invalid}
   templates-update-cache: 5s
   mail-sending-props:
