@@ -55,6 +55,7 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(localeChangeInterceptor());
         registry.addInterceptor(authInterceptor).excludePathPatterns("/api/**");
     }
 
@@ -66,7 +67,7 @@ public class MvcConfig implements WebMvcConfigurer {
                 put("/view/**", new UrlFilenameViewController());
             }});
             setOrder(0);
-            setInterceptors(authInterceptor);
+            setInterceptors(authInterceptor, localeChangeInterceptor());
         }};
     }
 
@@ -74,6 +75,20 @@ public class MvcConfig implements WebMvcConfigurer {
     @Bean
     ForwardedHeaderFilter forwardedHeaderFilter() {
         return new ForwardedHeaderFilter();
+    }
+
+    @Bean
+    public org.springframework.web.servlet.LocaleResolver localeResolver() {
+        var resolver = new org.springframework.web.servlet.i18n.CookieLocaleResolver("language");
+        resolver.setDefaultLocale(java.util.Locale.forLanguageTag("ru"));
+        return resolver;
+    }
+
+    @Bean
+    public org.springframework.web.servlet.i18n.LocaleChangeInterceptor localeChangeInterceptor() {
+        var interceptor = new org.springframework.web.servlet.i18n.LocaleChangeInterceptor();
+        interceptor.setParamName("lang");
+        return interceptor;
     }
 
     @Override
