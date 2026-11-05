@@ -29,7 +29,6 @@ import java.util.concurrent.*;
 @Service
 @RequiredArgsConstructor
 public class MailService {
-    private static final Locale LOCALE_RU = Locale.forLanguageTag("ru");
     private static final String OK = "OK";
 
     private final MailCaseRepository mailCaseRepository;
@@ -51,19 +50,27 @@ public class MailService {
     }
 
     public String sendToUserWithParams(@NonNull String template, @NonNull User user, @NonNull Map<String, Object> params) {
+        return sendToUserWithParams(template, user, params, org.springframework.context.i18n.LocaleContextHolder.getLocale());
+    }
+
+    public String sendToUserWithParams(String template, User user, Map<String, Object> params, Locale locale) {
         String email = Objects.requireNonNull(user.getEmail());
         Map<String, Object> extParams = Util.mergeMap(params, Map.of("user", user));
-        return send(appConfig.isProd() ? email : appProperties.getTestMail(), user.getFirstName(), template, extParams);
+        return send(appConfig.isProd() ? email : appProperties.getTestMail(), user.getFirstName(), template, extParams, locale);
     }
 
     public String send(String toEmail, String toName, String template, Map<String, Object> params) {
+        return send(toEmail, toName, template, params, org.springframework.context.i18n.LocaleContextHolder.getLocale());
+    }
+
+    public String send(String toEmail, String toName, String template, Map<String, Object> params, Locale locale) {
         log.debug("Send email to {}, {} with template {}", toEmail, toName, template);
         String result = OK;
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, "UTF-8");
             message.setFrom(email, "JiraRush");
-            String content = getContent(template, params);
+            String content = getContent(template, params, locale);
             message.setText(content, true);
             message.setSubject(Util.getTitle(content));  // TODO calculate title for group emailing only once
             message.setTo(new InternetAddress(toEmail, toName, "UTF-8"));
@@ -78,8 +85,8 @@ public class MailService {
         return result;
     }
 
-    private String getContent(String template, Map<String, Object> params) {
-        Context context = new Context(LOCALE_RU, params);
+    private String getContent(String template, Map<String, Object> params, Locale locale) {
+        Context context = new Context(locale, params);
         return templateEngine.process(template, context);
     }
 
@@ -118,8 +125,8 @@ public class MailService {
     }
 
     @Async("mailExecutor")
-    public void sendToUserAsync(@NonNull String template, @NonNull User user, Map<String, Object> params) {
-        sendToUserWithParams(template, user, params);
+    public void sendToUserAsync(@NonNull String template, @NonNull User user, Map<String, Object> params, Locale locale) {
+        sendToUserWithParams(template, user, params, locale);
     }
 
     private void cancelAll(Map<Future<String>, String> resultMap) {

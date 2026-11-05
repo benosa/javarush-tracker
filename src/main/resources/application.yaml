@@ -8,6 +8,8 @@ app:
     max-pool-size: 100
 
 spring:
+  messages:
+    fallback-to-system-locale: false
   config:
     import: classpath:application-secrets.properties
   init:

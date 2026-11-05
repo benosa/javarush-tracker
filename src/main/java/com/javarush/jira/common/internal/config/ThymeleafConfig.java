@@ -14,11 +14,13 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ThymeleafConfig {
     private final AppProperties appProperties;
+    private final org.springframework.context.MessageSource messageSource;
 
     @Bean
     // Attention: with TemplateEngine clear cache doesn't work
     public SpringTemplateEngine thymeleafTemplateEngine() {
         SpringTemplateEngine engine = new SpringTemplateEngine();
+        engine.setTemplateEngineMessageSource(messageSource);
         FileTemplateResolver viewResolver = createTemplateResolver("./resources/view/");
         viewResolver.setCheckExistence(true);
         viewResolver.setOrder(1);
