@@ -55,6 +55,10 @@ public class User extends TimestampEntry implements HasIdAndEmail, Serializable 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonView(View.OnCreate.class)
     private String password;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(name = "token_version", insertable = false, updatable = false)
+    private long tokenVersion;
     @NotBlank
     @Size(min = 2, max = 32)
     @NoHtml

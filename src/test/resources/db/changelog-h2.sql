@@ -330,3 +330,6 @@ alter table USER_BELONG add column ACTIVE_ASSIGNMENT boolean
     generated always as (case when ENDPOINT is null then true else null end);
 create unique index UK_USER_BELONG on USER_BELONG
     (OBJECT_ID, OBJECT_TYPE, USER_ID, USER_TYPE_CODE, ACTIVE_ASSIGNMENT);
+
+--changeset final:jwt-token-version
+alter table USERS add column TOKEN_VERSION bigint not null default 0;
