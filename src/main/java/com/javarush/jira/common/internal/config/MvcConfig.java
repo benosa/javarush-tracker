@@ -40,6 +40,10 @@ public class MvcConfig implements WebMvcConfigurer {
                 AuthUser authUser = AuthUser.safeGet();
                 if (authUser != null) {
                     model.addAttribute("authUser", authUser);
+                    var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                    if (authentication instanceof com.javarush.jira.login.internal.jwt.AccessAuthentication access) {
+                        model.addAttribute("accessToken", access.token());
+                    }
                 }
             }
         }

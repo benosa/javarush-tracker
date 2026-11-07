@@ -8,7 +8,7 @@
         <p th:text="#{home.description}"></p>
         <nav aria-label="Language"><a href="/?lang=ru">Русский</a> | <a href="/?lang=en">English</a></nav>
         <div th:if="${authUser} != null">
-            <form action="/ui/logout" method="post">
+            <form action="/api/auth/logout" method="post">
                 <button class="btn btn-primary btn-lg mt-3" type="submit" th:text="#{nav.logout}">Logout</button>
             </form>
         </div>

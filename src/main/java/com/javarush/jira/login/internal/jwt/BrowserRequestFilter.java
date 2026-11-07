@@ -28,7 +28,8 @@ public class BrowserRequestFilter extends OncePerRequestFilter {
             }
             // A cookie may navigate to a page, but cannot authorize a mutation on its own.
             if (foreign || (cookies.read(request, TokenCookies.ACCESS) != null
-                    && request.getHeader("Authorization") == null)) {
+                    && request.getHeader("Authorization") == null
+                    && !request.getRequestURI().equals("/api/auth/login"))) {
                 response.sendError(403);
                 return;
             }
