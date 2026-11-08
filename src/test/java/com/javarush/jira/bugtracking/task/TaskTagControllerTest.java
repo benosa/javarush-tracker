@@ -19,6 +19,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WithUserDetails("user@gmail.com")
 class TaskTagControllerTest extends AbstractControllerTest {
     @Autowired TaskTagService service;
+    @Autowired TaskRepository repository;
+    @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
+
+    @Test void addsTagToTaskCreatedInTheSameTransaction() {
+        new org.springframework.transaction.support.TransactionTemplate(transactions).executeWithoutResult(status -> {
+            Task task = repository.saveAndFlush(new Task(null, "New task", "task", "todo", null, 1, 1L));
+            assertEquals(java.util.Set.of("backend"), service.addTag(task.id(), "backend"));
+        });
+    }
+
     private static final String URL = "/api/tasks/1/tags";
 
     @Test void addsAndReadsTagsWithoutDuplicates() throws Exception {

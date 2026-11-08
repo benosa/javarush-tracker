@@ -68,11 +68,11 @@ public class Task extends TitleEntity implements HasCode {
     @ElementCollection(fetch = FetchType.LAZY)
     @JoinColumn()
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<@Size(min = 2, max = 32) String> tags = Set.of();
+    private Set<@Size(min = 2, max = 32) String> tags = new java.util.HashSet<>();
 
     //  history of comments and task fields changing
     @OneToMany(mappedBy = "taskId", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Activity> activities;
+    private List<Activity> activities = new java.util.ArrayList<>();
 
     public Task(Long id, String title, String typeCode, String statusCode, Long parentId, long projectId, Long sprintId) {
         super(id, title);

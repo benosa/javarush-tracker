@@ -4,8 +4,10 @@ import com.javarush.jira.login.AuthUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 public class AccessAuthentication extends UsernamePasswordAuthenticationToken {
+    private final String token;
     public AccessAuthentication(AuthUser user, String token) {
-        super(user, token, user.getAuthorities());
+        super(user, null, user.getAuthorities());
+        this.token = token;
     }
-    public String token() { return (String) getCredentials(); }
+    public String token() { return token; }
 }

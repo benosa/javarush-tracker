@@ -26,9 +26,11 @@ public class BrowserRequestFilter extends OncePerRequestFilter {
                             || !supplied.getAuthority().equals(current.getAuthority());
                 } catch (RuntimeException ex) { foreign = true; }
             }
+            String authorization = request.getHeader("Authorization");
+            boolean bearer = authorization != null && authorization.regionMatches(true, 0, "Bearer ", 0, 7);
             // A cookie may navigate to a page, but cannot authorize a mutation on its own.
             if (foreign || (cookies.read(request, TokenCookies.ACCESS) != null
-                    && request.getHeader("Authorization") == null
+                    && !bearer
                     && !request.getRequestURI().equals("/api/auth/login"))) {
                 response.sendError(403);
                 return;

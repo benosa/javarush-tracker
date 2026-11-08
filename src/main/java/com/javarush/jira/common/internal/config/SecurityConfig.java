@@ -22,7 +22,6 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 
 @Configuration
@@ -69,7 +68,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users").anonymous()
                 .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
                 .requestCache(cache -> cache.requestCache(new NullRequestCache()))
                 .csrf(csrf -> csrf.disable())
                 .logout(logout -> logout.disable())

@@ -82,6 +82,14 @@ public class MvcConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    public org.springframework.boot.web.servlet.FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeadersRegistration(
+            ForwardedHeaderFilter filter) {
+        var registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>(filter);
+        registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);
+        return registration;
+    }
+
+    @Bean
     public org.springframework.web.servlet.LocaleResolver localeResolver() {
         var resolver = new org.springframework.web.servlet.i18n.CookieLocaleResolver("language");
         resolver.setDefaultLocale(java.util.Locale.forLanguageTag("ru"));

@@ -37,6 +37,7 @@ public class JwtService {
         var jwtDecoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
         jwtDecoder.setJwtValidator(new org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator<>(
                 JwtValidators.createDefaultWithIssuer(ISSUER),
+                new JwtClaimValidator<Instant>("exp", java.util.Objects::nonNull),
                 new JwtClaimValidator<List<String>>("aud", aud -> aud != null && aud.contains(ISSUER))));
         this.decoder = jwtDecoder;
         this.users = users;
