@@ -345,3 +345,7 @@ values (-1003, -1000, -1000, '2026-11-02 09:00:00', 'in_progress'),
 
 --changeset final:jwt-token-version
 alter table USERS add column TOKEN_VERSION bigint not null default 0;
+
+--changeset final:remove-retired-social-contacts
+delete from CONTACT where CODE in ('vk', 'yandex');
+delete from REFERENCE where REF_TYPE = 0 and CODE in ('vk', 'yandex');
