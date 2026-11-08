@@ -54,6 +54,12 @@ public class UIExceptionHandler extends BasicExceptionHandler {
         }
 
         log.error(ERR_PFX + "Exception " + msg + " at request " + path);
-        return getExceptionView(th, ErrorType.APP_ERROR, msg, null);
+        HttpStatus resolved = status == null ? null : HttpStatus.resolve(status);
+        if (resolved == HttpStatus.NOT_FOUND) {
+            return extendModelAndView(resolved, new ModelAndView("404"));
+        }
+        ModelAndView view = getExceptionView(th, ErrorType.APP_ERROR, msg, null);
+        if (resolved != null) view.setStatus(resolved);
+        return view;
     }
 }

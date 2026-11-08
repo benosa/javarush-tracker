@@ -3,6 +3,7 @@
 <th:block th:fragment="page"
           th:with="img=${img}?: 'https://javarush.com/assets/images/site/homepage/og-image-jr.jpg', descr=${descr}?: ${title}">
     <head>
+        <meta name="access-token" th:if="${accessToken != null}" th:content="${accessToken}"/>
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
         <meta content="width=device-width, initial-scale=1" name="viewport">
         <meta name="title" th:content="${title}"/>
@@ -62,6 +63,7 @@
     </div>
     </body>
     <script src="/static/jquery/js/jquery.min.js"></script>
+    <script src="/static/js/auth.js"></script>
     <script>
         $([[${activeMenuItem}]]).addClass('active');
     </script>

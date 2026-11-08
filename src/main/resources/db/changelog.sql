@@ -342,3 +342,6 @@ insert into ACTIVITY (ID, AUTHOR_ID, TASK_ID, UPDATED, STATUS_CODE)
 values (-1003, -1000, -1000, '2026-11-02 09:00:00', 'in_progress'),
        (-1002, -1000, -1000, '2026-11-02 13:30:00', 'ready_for_review'),
        (-1001, -1000, -1000, '2026-11-02 15:00:00', 'done');
+
+--changeset final:jwt-token-version
+alter table USERS add column TOKEN_VERSION bigint not null default 0;
