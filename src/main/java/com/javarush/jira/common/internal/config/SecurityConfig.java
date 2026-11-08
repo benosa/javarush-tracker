@@ -60,6 +60,7 @@ public class SecurityConfig {
         };
         DefaultBearerTokenResolver headers = new DefaultBearerTokenResolver();
         http.authorizeHttpRequests(auth -> auth
+                .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                 .requestMatchers("/", "/view/login", "/api/auth/login", "/oauth2/**", "/login/oauth2/**",
                         "/doc", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/static/**", "/robots.txt").permitAll()
                 .requestMatchers("/view/unauth/**", "/ui/register/**", "/ui/password/**").anonymous()
