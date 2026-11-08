@@ -1,6 +1,6 @@
 # Контейнеры
 
-Скопировать `.env.example` в `.env`, задать DB_PASSWORD и APP_URL=http://localhost:8081.
+Скопировать `.env.example` в `.env`, задать DB_PASSWORD, JWT_SECRET (Base64 от 32 случайных байт) и APP_URL=http://localhost:8081.
 `docker compose up --build -d --wait` запускает три сервиса. Swagger: http://localhost:8081/doc.
 База не публикует порт наружу; приложение доступно через nginx. Healthcheck базы
 проверяется перед стартом приложения, healthcheck приложения — перед стартом nginx.

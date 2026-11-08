@@ -1,11 +1,10 @@
-В настройках nginx `cat /etc/nginx/nginx.conf` есть сканирование активных
-конфигураций: `include /etc/nginx/sites-enabled/*;`
-В каталоге `/etc/nginx/sites-enabled/` если линк на профиль по умолчанию: `ls -la /etc/nginx/sites-enabled/`
-[Меняем его на наш профиль](https://unix.stackexchange.com/a/152000/216630):
+# nginx
 
-```
-cd /etc/nginx/sites-enabled/
-sudo ln -sfn /opt/jirarush/config/nginx.conf default
-cat default
-sudo service nginx reload (start/stop)
-```
+`config/nginx.conf` подключён к `/etc/nginx/conf.d/default.conf` сервиса nginx.
+Статические файлы берутся из `resources/static`, остальные запросы идут к `app:8080`.
+Проверка синтаксиса: `docker compose exec nginx nginx -t`.
+После изменения конфигурации: `docker compose exec nginx nginx -s reload`.
+
+Host, X-Forwarded-Host и X-Forwarded-Proto сохраняют внешний адрес для redirect и OAuth callback.
+Само приложение не публикует порт наружу. TLS при размещении сервиса нужно настроить
+на входном прокси, указав HTTPS в APP_URL и COOKIE_SECURE=true.
