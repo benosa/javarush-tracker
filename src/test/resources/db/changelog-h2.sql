@@ -333,3 +333,7 @@ create unique index UK_USER_BELONG on USER_BELONG
 
 --changeset final:jwt-token-version
 alter table USERS add column TOKEN_VERSION bigint not null default 0;
+
+--changeset final:remove-retired-social-contacts
+delete from CONTACT where CODE in ('vk', 'yandex');
+delete from REFERENCE where REF_TYPE = 0 and CODE in ('vk', 'yandex');

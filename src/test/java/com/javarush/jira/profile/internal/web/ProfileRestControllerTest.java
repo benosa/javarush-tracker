@@ -41,7 +41,7 @@ class ProfileRestControllerTest extends AbstractControllerTest {
         perform(put(URL).contentType(MediaType.APPLICATION_JSON).content(writeValue(getUpdatedTo())))
                 .andExpect(status().isNoContent());
         perform(get(URL)).andExpect(jsonPath("$.mailNotifications", hasSize(6)))
-                .andExpect(jsonPath("$.contacts", hasSize(7)))
+                .andExpect(jsonPath("$.contacts", hasSize(6)))
                 .andExpect(jsonPath("$.contacts[?(@.code == 'skype')].value", contains("newSkype")));
     }
 
