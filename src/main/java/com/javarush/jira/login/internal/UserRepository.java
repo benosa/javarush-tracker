@@ -14,6 +14,12 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 @CacheConfig(cacheNames = "users")
 public interface UserRepository extends BaseRepository<User> {
+    @Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.cache.annotation.CacheEvict(value = "users", allEntries = true)
+    @Query("UPDATE User u SET u.tokenVersion = u.tokenVersion + 1 WHERE u.id = :id")
+    void invalidateTokens(long id);
+
 
     @Cacheable(key = "#email")
     @Query("SELECT u FROM User u WHERE u.email = LOWER(:email)")

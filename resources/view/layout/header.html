@@ -17,12 +17,12 @@
                         </li>
                     </ul>
                     <div th:if="${authUser} == null">
-                        <a class="btn btn-orange" href="/view/login" type="button">Login/Register</a>
+                        <a class="btn btn-orange" href="/view/login" type="button" th:text="#{nav.login}">Login/Register</a>
                     </div>
                     <th:block th:if="${authUser} != null">
                         <a class="btn btn-orange" href="/ui/profile" type="button"><i
                                 class="fa-solid fa-address-card"></i> Profile</a>
-                        <form action="/ui/logout" class="mx-2" method="post">
+                        <form action="/api/auth/logout" class="mx-2" method="post">
                             <button class="btn btn-yellow btn-orange" type="submit"><i class="fa-solid fa-sign-out"></i>
                                 Logout
                             </button>

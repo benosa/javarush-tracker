@@ -106,7 +106,7 @@ function renderDeleteBtn(data, type, row) {
 
 function failNoty(jqXHR) {
     closeNoty();
-    var errorInfo = jqXHR.responseJSON;
+    var errorInfo = jqXHR.responseJSON || {title: "Request failed", detail: "HTTP " + jqXHR.status};
     failedNote = new Noty({
         text: "<span class='fa fa-lg fa-exclamation-circle'></span> &nbsp;" + errorInfo.title + "<br>" +
             (errorInfo.invalid_params ? JSON.stringify(errorInfo.invalid_params) : errorInfo.detail),

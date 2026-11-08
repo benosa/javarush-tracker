@@ -23,12 +23,12 @@ public class MailListeners {
     public void confirmRegistration(RegistrationConfirmEvent event) {
         String confirmationUrl = appProperties.getHostUrl() + "/ui/register/confirm?token=" + event.token();
         User user = userMapper.toEntity(event.userto());
-        mailService.sendToUserAsync("email-confirmation.html", user, Map.of("confirmationUrl", confirmationUrl));
+        mailService.sendToUserAsync("email-confirmation.html", user, Map.of("confirmationUrl", confirmationUrl), org.springframework.context.i18n.LocaleContextHolder.getLocale());
     }
 
     @EventListener
     public void resetPassword(PasswordResetEvent event) {
         String resetUrl = appProperties.getHostUrl() + "/ui/password/change?token=" + event.token();
-        mailService.sendToUserAsync("password-reset.html", event.user(), Map.of("resetUrl", resetUrl));
+        mailService.sendToUserAsync("password-reset.html", event.user(), Map.of("resetUrl", resetUrl), org.springframework.context.i18n.LocaleContextHolder.getLocale());
     }
 }

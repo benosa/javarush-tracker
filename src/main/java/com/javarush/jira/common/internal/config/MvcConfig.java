@@ -7,10 +7,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.context.request.WebRequestInterceptor;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -18,7 +15,6 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
-import org.springframework.web.servlet.handler.WebRequestHandlerInterceptorAdapter;
 import org.springframework.web.servlet.mvc.UrlFilenameViewController;
 
 import java.time.Duration;
@@ -32,29 +28,28 @@ import java.util.Properties;
 public class MvcConfig implements WebMvcConfigurer {
     private final AppProperties appProperties;
 
-    // Add authUser to view model
-    private final HandlerInterceptor authInterceptor = new WebRequestHandlerInterceptorAdapter(new WebRequestInterceptor() {
+    // Redirect models become query parameters, so they must never contain credentials.
+    private final HandlerInterceptor authInterceptor = new HandlerInterceptor() {
         @Override
-        public void postHandle(WebRequest request, ModelMap model) {
-            if (model != null) {
-                AuthUser authUser = AuthUser.safeGet();
-                if (authUser != null) {
-                    model.addAttribute("authUser", authUser);
+        public void postHandle(jakarta.servlet.http.HttpServletRequest request,
+                               jakarta.servlet.http.HttpServletResponse response, Object handler,
+                               org.springframework.web.servlet.ModelAndView view) {
+            if (view == null || view.getView() instanceof org.springframework.web.servlet.view.RedirectView
+                    || (view.getViewName() != null && view.getViewName().startsWith("redirect:"))) return;
+            AuthUser authUser = AuthUser.safeGet();
+            if (authUser != null) {
+                view.addObject("authUser", authUser);
+                var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                if (authentication instanceof com.javarush.jira.login.internal.jwt.AccessAuthentication access) {
+                    view.addObject("accessToken", access.token());
                 }
             }
         }
-
-        @Override
-        public void afterCompletion(WebRequest request, Exception ex) {
-        }
-
-        @Override
-        public void preHandle(WebRequest request) {
-        }
-    });
+    };
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(localeChangeInterceptor());
         registry.addInterceptor(authInterceptor).excludePathPatterns("/api/**");
     }
 
@@ -66,7 +61,7 @@ public class MvcConfig implements WebMvcConfigurer {
                 put("/view/**", new UrlFilenameViewController());
             }});
             setOrder(0);
-            setInterceptors(authInterceptor);
+            setInterceptors(authInterceptor, localeChangeInterceptor());
         }};
     }
 
@@ -74,6 +69,28 @@ public class MvcConfig implements WebMvcConfigurer {
     @Bean
     ForwardedHeaderFilter forwardedHeaderFilter() {
         return new ForwardedHeaderFilter();
+    }
+
+    @Bean
+    public org.springframework.boot.web.servlet.FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeadersRegistration(
+            ForwardedHeaderFilter filter) {
+        var registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>(filter);
+        registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);
+        return registration;
+    }
+
+    @Bean
+    public org.springframework.web.servlet.LocaleResolver localeResolver() {
+        var resolver = new org.springframework.web.servlet.i18n.CookieLocaleResolver("language");
+        resolver.setDefaultLocale(java.util.Locale.forLanguageTag("ru"));
+        return resolver;
+    }
+
+    @Bean
+    public org.springframework.web.servlet.i18n.LocaleChangeInterceptor localeChangeInterceptor() {
+        var interceptor = new org.springframework.web.servlet.i18n.LocaleChangeInterceptor();
+        interceptor.setParamName("lang");
+        return interceptor;
     }
 
     @Override

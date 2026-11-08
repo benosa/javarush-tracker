@@ -13,7 +13,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import static com.javarush.jira.profile.internal.web.ProfileUIController.PROFILE_URL;
 
@@ -26,7 +26,11 @@ public class ProfileUIController extends AbstractProfileController {
     private final ErrorMessageHandler errorMessageHandler;
 
     @GetMapping
-    public String get(Model model, @AuthenticationPrincipal AuthUser authUser) {
+    public String get(Model model, @AuthenticationPrincipal AuthUser authUser,
+                      @RequestParam(required = false) String userResult) {
+        if ("saved".equals(userResult)) model.addAttribute("userSuccess", "Successfully changed");
+        if ("invalid".equals(userResult)) model.addAttribute("userError", "Please check the supplied user details");
+        if ("wrong-password".equals(userResult)) model.addAttribute("userError", "Wrong old password");
         model.addAttribute("profile", super.get(authUser.id()));
         model.addAttribute("contactRefs", ReferenceService.getRefs(RefType.CONTACT).values());
         model.addAttribute("mailNotificationRefs", ReferenceService.getRefs(RefType.MAIL_NOTIFICATION).values());
@@ -35,13 +39,13 @@ public class ProfileUIController extends AbstractProfileController {
 
     @PostMapping
     public String update(@Valid ProfilePostRequest profile, BindingResult result,
-                         @AuthenticationPrincipal AuthUser authUser, RedirectAttributes redirectAttrs) {
+                         @AuthenticationPrincipal AuthUser authUser, Model model) {
         if (result.hasErrors()) {
-            redirectAttrs.addFlashAttribute("profileError", errorMessageHandler.getErrorList(result));
-            return "redirect:" + PROFILE_URL;
+            model.addAttribute("profileError", errorMessageHandler.getErrorList(result));
+            return get(model, authUser, null);
         }
-        redirectAttrs.addFlashAttribute("profileSuccess", "Saved successfully");
+        model.addAttribute("profileSuccess", "Saved successfully");
         super.update(profileMapper.fromPostToTo(profile), authUser.id());
-        return "redirect:" + PROFILE_URL;
+        return get(model, authUser, null);
     }
 }

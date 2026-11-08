@@ -12,9 +12,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @SecurityScheme(
-        name = "basicAuth",
+        name = "bearerAuth",
         type = SecuritySchemeType.HTTP,
-        scheme = "basic"
+        scheme = "bearer",
+        bearerFormat = "JWT"
 )
 @OpenAPIDefinition(
         info = @Info(
@@ -22,7 +23,8 @@ import org.springframework.context.annotation.Configuration;
                 version = "1.0",
                 description = """
                         <a href='http://localhost/'>JavaRush Jira application</a><br>
-                        <p><b>Тестовые креденшелы:</b><br>
+                        <p>Получите accessToken через POST /api/auth/login и вставьте в Authorize.</p>
+                        <p><b>Учётные записи демонстрационных данных:</b><br>
                         - user@gmail.com / password<br>
                         - admin@gmail.com / admin<br>
                         - guest@gmail.com / guest</p>
@@ -32,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
         servers = {
                 @Server(url = "${app.host-url}")
         },
-        security = @SecurityRequirement(name = "basicAuth")
+        security = @SecurityRequirement(name = "bearerAuth")
 )
 @Configuration
 public class OpenApiConfig {

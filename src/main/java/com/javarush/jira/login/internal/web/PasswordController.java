@@ -1,67 +1,45 @@
 package com.javarush.jira.login.internal.web;
 
-import com.javarush.jira.common.error.DataConflictException;
-import com.javarush.jira.common.internal.config.SecurityConfig;
 import com.javarush.jira.login.User;
+import com.javarush.jira.login.internal.OneTimeActionService;
 import com.javarush.jira.login.internal.UserRepository;
 import com.javarush.jira.login.internal.passwordreset.PasswordResetEvent;
-import com.javarush.jira.login.internal.passwordreset.ResetData;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.support.SessionStatus;
 
-@Slf4j
 @Controller
-@RequestMapping(PasswordController.PASSWORD_URL)
+@Validated
+@RequestMapping("/ui/password")
 @RequiredArgsConstructor
 public class PasswordController {
-    static final String PASSWORD_URL = "/ui/password";
-    private final UserRepository userRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final UserRepository users;
+    private final OneTimeActionService actions;
+    private final ApplicationEventPublisher events;
 
     @PostMapping("/reset")
-    public String resetPassword(@RequestParam String email, HttpServletRequest request) {
-        log.info("reset password {}", email);
-        User user = userRepository.getExistedByEmail(email);
-        ResetData resetData = new ResetData(email);
-        request.getSession().setAttribute("token", resetData);
-        eventPublisher.publishEvent(new PasswordResetEvent(user, resetData.getToken()));
+    public String resetPassword(@RequestParam String email) {
+        users.findByEmailIgnoreCase(email).filter(User::isEnabled).ifPresent(user ->
+                events.publishEvent(new PasswordResetEvent(user, actions.requestPasswordReset(user))));
         return "redirect:/view/login";
     }
 
     @GetMapping("/change")
-    public String changePassword(@RequestParam String token, Model model,
-                                 @SessionAttribute(name = "token") ResetData resetData) {
-        log.info("change password {}", resetData);
-        if (token.equals(resetData.getToken())) {
-            model.addAttribute("token", token);
-            return "/unauth/change-password";
-        }
-        throw new DataConflictException("Token mismatch error");
+    public String changePassword(@RequestParam String token, Model model) {
+        actions.checkReset(token);
+        model.addAttribute("token", token);
+        return "unauth/change-password";
     }
 
-    @Transactional
     @PostMapping("/save")
-    @CacheEvict(value = "users", key = "#resetData.email")
-    public String savePassword(@RequestParam String token, @RequestParam String password,
-                               @SessionAttribute(name = "token") ResetData resetData,
-                               SessionStatus status, HttpSession session) {
-        log.info("save password {}", resetData);
-        if (token.equals(resetData.getToken())) {
-            User user = userRepository.getExistedByEmail(resetData.getEmail());
-            String encodedPassword = SecurityConfig.PASSWORD_ENCODER.encode(password);
-            user.setPassword(encodedPassword);
-            session.invalidate();
-            status.setComplete();
-        }
-        return "redirect:/view/login";
+    public String savePassword(@RequestParam String token,
+                              @RequestParam @NotBlank @Size(min = 5, max = 32) String password) {
+        actions.resetPassword(token, password);
+        return "redirect:/view/login?reset";
     }
 }

@@ -7,3 +7,9 @@ attachments
 *.patch
 
 
+.env
+.env.*
+!.env.example
+pgdata/
+pgdata-test/
+config/application-local.*
